@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聚心同行，筑梦华峰</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .scene { position: fixed; inset: 0; overflow: hidden; }
+
+  .mountain-img {
+    position: absolute; inset: -5%;
+    width: 110%; height: 110%;
+    object-fit: cover; object-position: center 30%;
+    transition: transform 0.15s ease-out;
+    pointer-events: none;
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none; z-index: 1;
+  }
+  .sky-fade {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(10,20,50,0.2) 0%, transparent 20%, transparent 75%,
+      rgba(0,0,15,0.5) 100%);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* ===== Portal Nodes ===== */
+  .portal {
+    position: absolute; z-index: 10;
+    width: clamp(36px, 4vw, 58px); height: clamp(36px, 4vw, 58px);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: filter 0.3s;
+  }
+  .portal-ring {
+    position: absolute; inset: clamp(-3px, -0.45vw, -6px); border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    animation: ringSpin 8s linear infinite;
+    box-shadow: 0 0 16px rgba(150,200,255,0.35), inset 0 0 16px rgba(150,200,255,0.1);
+    pointer-events: none;
+  }
+  .portal:nth-of-type(1) .portal-ring { animation-delay: 0s; }
+  .portal:nth-of-type(2) .portal-ring { animation-delay: -2s; }
+  .portal:nth-of-type(3) .portal-ring { animation-delay: -4s; }
+  .portal:nth-of-type(4) .portal-ring { animation-delay: -6s; }
+  @keyframes ringSpin {
+    from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+  }
+
+  .portal-glow {
+    position: absolute; inset: clamp(4px, 0.7vw, 9px); border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%,
+      rgba(255,255,255,0.95) 0%, rgba(180,210,255,0.6) 25%,
+      rgba(80,140,220,0.25) 55%, transparent 100%);
+    animation: glowPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .portal:nth-of-type(1) .portal-glow { animation-delay: 0s; }
+  .portal:nth-of-type(2) .portal-glow { animation-delay: -0.75s; }
+  .portal:nth-of-type(3) .portal-glow { animation-delay: -1.5s; }
+  .portal:nth-of-type(4) .portal-glow { animation-delay: -2.25s; }
+  @keyframes glowPulse {
+    0%,100% { transform: scale(0.88); opacity: 0.7; }
+    50%     { transform: scale(1.06); opacity: 1; }
+  }
+
+  .portal-dot {
+    position: absolute; inset: clamp(11px, 1.9vw, 27px); border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 14px rgba(255,255,255,0.7);
+    animation: dotBlink 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes dotBlink { 0%,100% { opacity: 0.65; } 50% { opacity: 1; } }
+
+  .portal-ripple {
+    position: absolute; inset: clamp(-9px, -1.5vw, -22px); border-radius: 50%;
+    border: 1px solid rgba(200,220,255,0.18);
+    animation: rippleOut 2.8s ease-out infinite;
+    pointer-events: none;
+  }
+  .portal .portal-ripple:nth-child(4) { animation-delay: -0.9s; }
+  .portal .portal-ripple:nth-child(5) { animation-delay: -1.8s; }
+  @keyframes rippleOut {
+    0% { transform: scale(0.8); opacity: 0.55; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  .portal-label {
+    position: absolute; bottom: calc(100% + clamp(6px, 1vw, 14px)); left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(0,0,0,0.72); color: #fff;
+    padding: clamp(3px, 0.6vw, 6px) clamp(10px, 2vw, 14px);
+    border-radius: 14px;
+    font-size: clamp(0.6rem, 1.2vw, 0.78rem); white-space: nowrap;
+    pointer-events: none; opacity: 0;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .portal:hover .portal-label { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .portal:hover .portal-ring { border-color: rgba(255,255,255,0.7); }
+  .portal:hover .portal-glow { transform: scale(1.15); }
+
+  /* ===== Climber ===== */
+  .climber-wrap {
+    position: absolute; z-index: 5;
+    transform: translate(-50%, -50%);
+    transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                top 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.7));
+  }
+  .climber-svg { width: clamp(40px, 5vw, 60px); height: auto; display: block; }
+
+  .flag-cloth {
+    animation: flagWave 0.7s ease-in-out infinite;
+    transform-origin: 2px 6px;
+  }
+  @keyframes flagWave {
+    0%,100% { transform: skewY(0deg); }
+    30%     { transform: skewY(2deg) rotate(1.5deg); }
+    70%     { transform: skewY(-1.2deg) rotate(-1deg); }
+  }
+
+  /* ===== Snow ===== */
+  #snowCanvas { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+
+  /* ===== Warp ===== */
+  .warp-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.5s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .warp-overlay.active { pointer-events: all; opacity: 1; }
+  .warp-bg { position: absolute; inset: 0; background: radial-gradient(circle, #0b1428 0%, #000 100%); }
+  .warp-vortex {
+    width: clamp(50px, 8vmin, 100px); height: clamp(50px, 8vmin, 100px); border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,255,255,0.95) 0%, rgba(140,200,255,0.7) 20%,
+      rgba(50,110,220,0.4) 50%, transparent 70%);
+    transform: scale(0);
+    transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+    position: relative; z-index: 1;
+  }
+  .warp-overlay.active .warp-vortex { transform: scale(30); }
+
+  .flash {
+    position: fixed; inset: 0; z-index: 150;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 65%);
+    opacity: 0; transition: opacity 0.08s;
+  }
+  .flash.fire { opacity: 1; transition: opacity 0s; }
+
+  /* ===== UI ===== */
+  .title-area {
+    position: fixed; top: clamp(14px, 3.5vh, 30px); left: 0; right: 0;
+    text-align: center; z-index: 15; pointer-events: none;
+  }
+  .title-area h1 {
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+    font-weight: 700; letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    margin-bottom: clamp(6px, 1.2vh, 12px);
+  }
+  .team-logo {
+    display: block;
+    width: clamp(120px, 16vw, 220px);
+    height: auto;
+    margin: 0 auto;
+    opacity: 0.55;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)) saturate(1.6) brightness(0.85);
+  }
+
+  .bottom-hint {
+    position: fixed; bottom: clamp(14px, 3.5vh, 30px); left: 50%; transform: translateX(-50%);
+    z-index: 15; pointer-events: none;
+    font-size: clamp(0.6rem, 1vw, 0.75rem); letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.4);
+    animation: hintFade 3s ease-in-out infinite;
+  }
+  @keyframes hintFade { 0%,100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+
+  @media (max-width: 768px) {
+    .climber-svg { width: clamp(36px, 8vw, 52px); height: auto; }
+    .portal { width: clamp(36px, 8vw, 48px); height: clamp(36px, 8vw, 48px); }
+    .portal-dot { inset: clamp(9px, 2.5vw, 18px); } .portal-ring { inset: clamp(-2px, -0.6vw, -5px); }
+    .title-area { top: 18px; } .bottom-hint { bottom: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" id="scene">
+
+  <img class="mountain-img"
+       src="dc7509f065fab8543f6f24bec861d1db.jpeg"
+       alt="雪山" id="mountainImg">
+  <div class="sky-fade"></div>
+  <div class="vignette"></div>
+
+  <!--
+    ===== 4 Portal Nodes =====
+    长按拖动 → 调整位置
+    短按点击 → 进入节点
+  -->
+  <div class="portal" style="left:15%; top:85%;" data-portal="1" onclick="handlePortalClick(this)">
+    <div class="portal-ring"></div>
+    <div class="portal-glow"></div>
+    <div class="portal-dot"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-label">探峰成员</div>
+  </div>
+
+  <div class="portal" style="left:32%; top:70%;" data-portal="2" onclick="handlePortalClick(this)">
+    <div class="portal-ring"></div>
+    <div class="portal-glow"></div>
+    <div class="portal-dot"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-label">华峰的地标</div>
+  </div>
+
+  <div class="portal" style="left:55%; top:65%;" data-portal="3" onclick="handlePortalClick(this)">
+    <div class="portal-ring"></div>
+    <div class="portal-glow"></div>
+    <div class="portal-dot"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-label">职场前辈的锦囊</div>
+  </div>
+
+  <div class="portal" style="left:80%; top:50%;" data-portal="4" onclick="handlePortalClick(this)">
+    <div class="portal-ring"></div>
+    <div class="portal-glow"></div>
+    <div class="portal-dot"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-ripple"></div>
+    <div class="portal-label">课程感悟</div>
+  </div>
+
+  <!-- Climber -->
+  <div class="climber-wrap" id="climber" style="left: 12%; top: 88%;">
+    <svg class="climber-svg" viewBox="0 0 56 84" xmlns="http://www.w3.org/2000/svg">
+      <line x1="6" y1="26" x2="2" y2="44" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M4,26 L8,22 L7,24" fill="none" stroke="#777" stroke-width="1.2"/>
+      <line x1="16" y1="4" x2="16" y2="52" stroke="#4a3020" stroke-width="2" stroke-linecap="round"/>
+      <g class="flag-cloth">
+        <rect x="16" y="3" width="26" height="17" rx="0.8" fill="#DE2910"/>
+        <g transform="translate(19, 6) scale(0.5)">
+          <polygon points="10,2 11.6,6 16,6 12.5,8.5 13.8,12.8 10,10 6.2,12.8 7.5,8.5 4,6 8.4,6" fill="#FFDE00"/>
+          <polygon points="20,1 20.9,3.2 23.3,3.2 21.5,4.5 22.2,6.8 20.2,5.5 18.2,6.8 18.9,4.5 17,3.2 19.5,3.2" fill="#FFDE00"/>
+          <polygon points="22,5 22.9,7.2 25.3,7.2 23.5,8.5 24.2,10.8 22.2,9.5 20.2,10.8 20.9,8.5 19,7.2 21.5,7.2" fill="#FFDE00"/>
+          <polygon points="21,9 21.9,11.2 24.3,11.2 22.5,12.5 23.2,14.8 21.2,13.5 19.2,14.8 19.9,12.5 18,11.2 20.5,11.2" fill="#FFDE00"/>
+          <polygon points="18,7 18.9,9.2 21.3,9.2 19.5,10.5 20.2,12.8 18.2,11.5 16.2,12.8 16.9,10.5 15,9.2 17.5,9.2" fill="#FFDE00"/>
+        </g>
+      </g>
+      <g fill="#1a1210">
+        <ellipse cx="14" cy="53" rx="5" ry="5.5"/>
+        <path d="M8.5,52 Q14,47 19.5,52" fill="#1a1210" stroke="#1a1210" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5,58 L8.5,73 L12,77 L18,73 L20,58 Z"/>
+        <rect x="19" y="57" width="8" height="15" rx="3" fill="#1c1815"/>
+        <rect x="20" y="60" width="6" height="5" rx="1" fill="#282420"/>
+        <path d="M10.5,60 L5.5,47 L4,40" fill="none" stroke="#1a1210" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M19.5,59 L16,47" fill="none" stroke="#1a1210" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M11,75 L8,83 L6,87" fill="none" stroke="#1a1210" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16,75 L18,83 L19,88" fill="none" stroke="#1a1210" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4,86 L8,87 L9,83" fill="#1a1210"/>
+        <path d="M17,87 L21,88 L20,84" fill="#1a1210"/>
+      </g>
+    </svg>
+  </div>
+
+  <canvas id="snowCanvas"></canvas>
+</div>
+
+<div class="title-area"><h1>聚心同行，筑梦华峰</h1><img class="team-logo" src="队标.png" alt="队标"></div>
+<div class="bottom-hint">点击光点 · 了解华峰的每一步</div>
+<div class="flash" id="flash"></div>
+<div class="warp-overlay" id="warpOverlay">
+  <div class="warp-bg"></div>
+  <div class="warp-vortex"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var climber = document.getElementById('climber');
+  var mountainImg = document.getElementById('mountainImg');
+  var flash = document.getElementById('flash');
+  var warpOverlay = document.getElementById('warpOverlay');
+  var snowCanvas = document.getElementById('snowCanvas');
+  var ctx = snowCanvas.getContext('2d');
+  var portals = document.querySelectorAll('.portal');
+  var warping = false;
+
+  // ===== Move climber to portal =====
+  function moveClimberTo(portalEl) {
+    var l = parseFloat(portalEl.style.left);
+    var t = parseFloat(portalEl.style.top);
+    climber.style.left = (l - 2) + '%';
+    climber.style.top  = (t + 4) + '%';
+  }
+
+  // ===== Flash effect =====
+  function doFlash() {
+    flash.classList.add('fire');
+    setTimeout(function() { flash.classList.remove('fire'); }, 150);
+  }
+
+  // ===== Warp to node page =====
+  function doWarp(nodeNum) {
+    if (warping) return;
+    warping = true;
+    warpOverlay.classList.add('active');
+    setTimeout(function() {
+      window.location.href = 'node-' + nodeNum + '.html';
+    }, 750);
+  }
+
+  // ===== Click portal → warp =====
+  // Global function for inline onclick (most reliable)
+  window.handlePortalClick = function(portalEl) {
+    if (warping) return;
+    var nodeNum = portalEl.dataset.portal;
+    moveClimberTo(portalEl);
+    setTimeout(function() { doFlash(); }, 750);
+    setTimeout(function() { doWarp(nodeNum); }, 900);
+  };
+
+  // ===== Keyboard 1-4 =====
+  window.addEventListener('keydown', function(e) {
+    var n = parseInt(e.key);
+    if (n >= 1 && n <= 4) {
+      var target = document.querySelector('.portal[data-portal="' + n + '"]');
+      if (target) {
+        moveClimberTo(target);
+        setTimeout(function() { doFlash(); }, 750);
+        setTimeout(function() { doWarp(n); }, 900);
+      }
+    }
+  });
+
+  // ===== Mouse parallax on mountain =====
+  window.addEventListener('mousemove', function(e) {
+    var mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    var my = (e.clientY / window.innerHeight - 0.5) * 2;
+    mountainImg.style.transform = 'translate(' + (-mx * 8) + 'px, ' + (-my * 6) + 'px) scale(1.08)';
+  });
+
+  // ===== Snow particles =====
+  function resizeCanvas() {
+    snowCanvas.width  = window.innerWidth;
+    snowCanvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  var flakes = [];
+  for (var i = 0; i < 140; i++) {
+    flakes.push({
+      x: Math.random() * snowCanvas.width,
+      y: Math.random() * snowCanvas.height,
+      r: 0.4 + Math.random() * 3,
+      vy: 0.1 + Math.random() * 1.3,
+      vx: -0.2 + Math.random() * 0.4,
+      a: 0.15 + Math.random() * 0.65,
+      swA: 0.1 + Math.random() * 1.0,
+      swS: 0.006 + Math.random() * 0.022,
+      swP: Math.random() * Math.PI * 2,
+    });
+  }
+
+  (function drawSnow() {
+    ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+    for (var i = 0; i < flakes.length; i++) {
+      var f = flakes[i];
+      f.swP += f.swS;
+      f.y += f.vy;
+      f.x += f.vx + Math.sin(f.swP) * f.swA * 0.35;
+      if (f.y > snowCanvas.height + 12) { f.y = -12; f.x = Math.random() * snowCanvas.width; }
+      if (f.x < -15) f.x = snowCanvas.width + 15;
+      if (f.x > snowCanvas.width + 15) f.x = -15;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + f.a + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(drawSnow);
+  })();
+
+})();
+</script>
+</body>
+</html>

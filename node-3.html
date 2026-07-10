@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职场前辈的锦囊</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+    color: #fff;
+  }
+
+  .bg-gradient {
+    position: fixed; inset: 0; z-index: -2;
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1028 30%, #150d28 60%, #06081a 100%);
+  }
+
+  /* ===== Title ===== */
+  .page-title {
+    position: fixed; top: 0; left: 0; right: 0;
+    text-align: center;
+    padding: clamp(16px, 2.5vh, 22px) 20px clamp(8px, 1.5vh, 14px);
+    z-index: 10;
+    pointer-events: none;
+  }
+  .page-title h1 {
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ===== Back button ===== */
+  .back-btn {
+    position: fixed; top: clamp(12px, 1.8vh, 18px); left: clamp(10px, 2vw, 18px);
+    z-index: 20;
+    padding: clamp(5px, 1vh, 8px) clamp(12px, 2vw, 18px);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    text-decoration: none;
+    font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+    letter-spacing: 0.04em;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+  }
+  .back-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* ===== Main layout ===== */
+  .main-row {
+    display: flex;
+    min-height: 100vh;
+    padding-top: clamp(56px, 9vh, 72px);
+  }
+
+  /* ===== Left: Photo slideshow ===== */
+  .photo-panel {
+    flex: 0 0 50%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: clamp(14px, 3vw, 30px) clamp(8px, 1vw, 14px) clamp(14px, 3vw, 30px) clamp(14px, 3vw, 30px);
+  }
+  .photo-frame {
+    position: relative;
+    width: 100%;
+    max-width: clamp(280px, 46vw, 540px);
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .photo-frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    z-index: 1;
+    transition: none;
+  }
+  .photo-frame img.active {
+    opacity: 1;
+    z-index: 2;
+  }
+  .photo-frame img.exiting {
+    opacity: 0;
+    z-index: 3;
+    transition: opacity 0.8s ease;
+  }
+  .photo-counter {
+    position: absolute;
+    bottom: clamp(6px, 1.5vh, 14px);
+    right: clamp(8px, 2vw, 16px);
+    background: rgba(0,0,0,0.55);
+    color: rgba(255,255,255,0.7);
+    padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 12px);
+    border-radius: 10px;
+    font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+    letter-spacing: 0.06em;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ===== Right: Content ===== */
+  .content-panel {
+    flex: 0 0 50%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: clamp(14px, 3vw, 30px) clamp(14px, 3vw, 30px) clamp(14px, 3vw, 30px) clamp(8px, 1vw, 14px);
+  }
+  .typing-box {
+    max-width: clamp(280px, 48vw, 540px);
+    width: 100%;
+  }
+  .typing-box .label {
+    font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-bottom: clamp(10px, 2vh, 18px);
+  }
+  .typing-text {
+    font-size: clamp(0.8rem, 1.3vw, 1.08rem);
+    color: rgba(255,255,255,0.85);
+    line-height: 1.8;
+    letter-spacing: 0.04em;
+    min-height: clamp(140px, 25vh, 220px);
+    position: relative;
+    white-space: pre-wrap;
+  }
+  .typing-cursor {
+    display: inline-block;
+    width: 0;
+    height: 1.1em;
+    border-left: 2px solid rgba(255,255,255,0.7);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.8s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+
+  /* ===== Particles ===== */
+  #particles {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 768px) {
+    .main-row {
+      flex-direction: column;
+      padding-top: clamp(52px, 10vh, 68px);
+    }
+    .photo-panel, .content-panel {
+      flex: 0 0 auto;
+      justify-content: center;
+      padding: clamp(10px, 2vw, 16px) clamp(12px, 3vw, 20px);
+    }
+    .photo-frame {
+      max-width: 90%;
+      aspect-ratio: 4 / 3;
+    }
+    .content-panel {
+      padding-bottom: clamp(24px, 6vh, 44px);
+    }
+    .typing-text { font-size: clamp(0.78rem, 2.2vw, 0.95rem); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+<canvas id="particles"></canvas>
+
+<div class="page-title"><h1>职场前辈的锦囊</h1></div>
+<a href="mountain-journey.html" class="back-btn">← 返回</a>
+
+<div class="main-row">
+
+  <!-- Left: Photo slideshow -->
+  <div class="photo-panel">
+    <div class="photo-frame" id="photoFrame">
+      <!-- Images injected by JS -->
+      <div class="photo-counter" id="photoCounter"></div>
+    </div>
+  </div>
+
+  <!-- Right: Typing text -->
+  <div class="content-panel">
+    <div class="typing-box">
+      <div class="typing-text" id="typingText">
+        <span id="typingContent"></span><span class="typing-cursor" id="typingCursor"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // ===== 锦囊照片 =====
+  const photos = [
+    "锦囊.jpg",
+    "锦囊1.jpg",
+    "锦囊2.jpg",
+    "锦囊3.jpg",
+    "锦囊4.jpg",
+    "锦囊5.jpg",
+    "锦囊6.jpg",
+    "锦囊7.jpg",
+    "3组高管访谈合照（合集）/0e34ff9a46ceeaf05db092ec21e5dabe.jpg",
+    "3组高管访谈合照（合集）/166bd88a4943981c0bee1a5e2760e833.jpg",
+    "3组高管访谈合照（合集）/36bed2d3460c5ef706f6563c0315d392.jpg",
+    "3组高管访谈合照（合集）/58292713f909846f992aa5a5fd302d95.jpg",
+    "3组高管访谈合照（合集）/8bb10d62a8de9c99d90b5d9e88f0a3d7.jpg",
+    "3组高管访谈合照（合集）/b0c2b51528952b8ea1b4dff0ae35d73f.jpg",
+    "3组高管访谈合照（合集）/e43668b65ec033a24ef37d2570edcbab.jpg",
+  ];
+
+  const frame = document.getElementById('photoFrame');
+  const counter = document.getElementById('photoCounter');
+
+  // Preload all images before starting (handle cached images)
+  let loadedCount = 0;
+  const total = photos.length;
+  const domImgs = [];
+
+  photos.forEach((src, i) => {
+    const img = new Image();
+    let done = false;
+    function handleReady() {
+      if (done) return;
+      done = true;
+      loadedCount++;
+      if (loadedCount >= total) startSlideshow();
+    }
+    img.onload = handleReady;
+    img.onerror = handleReady;
+    img.src = src;
+    if (img.complete) handleReady();
+    // Create DOM placeholder
+    const el = document.createElement('img');
+    el.src = src;
+    el.alt = '锦囊 ' + (i + 1);
+    if (i === 0) el.classList.add('active');
+    frame.insertBefore(el, counter);
+    domImgs.push(el);
+  });
+
+  let current = 0;
+  let started = false;
+
+  function updateCounter() {
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  function nextPhoto() {
+    const old = current;
+    current = (current + 1) % total;
+    // New image appears instantly at full opacity (no transition)
+    domImgs[current].classList.add('active');
+    // Old image fades out on top
+    domImgs[old].classList.add('exiting');
+    domImgs[old].classList.remove('active');
+    // Clean up after fade completes
+    setTimeout(() => {
+      domImgs[old].classList.remove('exiting');
+    }, 900);
+    updateCounter();
+  }
+
+  function startSlideshow() {
+    if (started) return;
+    started = true;
+    updateCounter();
+    setInterval(nextPhoto, 3000);
+  }
+
+  // Particles
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const pts = Array.from({length: 30}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: 0.5 + Math.random() * 1.5,
+    vx: -0.2 + Math.random() * 0.4,
+    vy: -0.3 - Math.random() * 0.5,
+  }));
+  function anim() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,160,255,0.25)'; ctx.fill();
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
+  window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+  // ===== Typing effect =====
+  const messages = [
+    "新人培养重在三变：关系从同学到同事，态度从被管到主动担责，行为从随性到守纪。让新人从小事做起打牢基础。强调知识须落地、复盘才能提升。企业要的是实干者，不是空谈者。\n\n称呼\"前辈\"不是客套，是规矩。\"对不起\"不表礼貌而是代价。心里有压力也有方向。从小事做起让人踏实，每次复盘都有新发现。想把\"知道\"变成\"做到\"。",
+
+    "AI赋能设备管理分两步推进：现阶段在关键点位部署传感器，依托预测功能实现故障预判；未来引入AI眼镜，输入故障描述即可调取维修方案。核心逻辑：用数据替代经验判断，用智能缩短维修链路。\n\n以前修设备全靠经验，现在AI能提前预警，心里更有底了。期待AI眼镜这个工具，遇到没见过的故障不用翻手册、不用等师傅，直接说出症状就有方案。技术让维修更有章法，不是空话。",
+
+    "AI大模型与自动化产线的融合点在于\"预判式干预\"。以双螺杆挤出机为突破口，盯住启停副料损耗这个真痛点，用AI提前5-10分钟预警异常工况，变\"被动抢修\"为\"主动防护\"，降本增效逻辑清晰，方案已进入落地阶段。\n\n每次非计划停机都意味着大量废料，心疼但没办法。现在AI能提前十分钟预警，不是冷冰冰的数字，是真的帮我们把损失挡在发生之前。以前靠运气，以后靠算法。",
+
+    "用人看\"解决问题思维\"：主动拆解需求、深入底层逻辑、用数据说话。汇报遵循\"论点-数据-方案-资源\"逻辑，给领导选择题而非问答题。跨部门协作要站在共同目标上化解分歧，主动牵头但先对齐直属领导。量化工作，闭环落地。\n\n不再等指令，学着拆问题、拿方案。被批评先稳住复盘，不隐瞒反而更被信任。汇报用数据、给选项，沟通顺畅很多。帮别人就是铺自己的路，跨部门换位思考后事情没那么难了。",
+
+    "研发人才三年梯度培养：通盘打基、独立扛项、开拓新域。定期复盘加速成长。选人看重靠谱胜过聪明，专业硬还得善沟通。AI研发根基在高质量数据，纸质电子化是前提。未来需要既懂化工又通AI的复合人才。\n\n三年路径让方向清晰了，第一年踏实学不焦虑。每周复盘花时间但思路更清楚。实验记录电子化开始嫌烦，想想AI要靠它做预测就理解了。跨界学计算机挺难，但知道是趋势，希望AI把重复劳动替掉，自己多做创造性的事。",
+
+    "用高薪酬撬动高产出——多发10万换回80万价值，5人干10人的活拿10人的钱，人效和幸福感双赢。选人重可塑性强的新人，推动管理转型。要求新人多跑现场、拥抱数字化，将个人成长嵌入集团战略。\n\n破冰让我明白：主动担责比退缩更高效。军训唤醒了自律，展厅看到了科研拼搏精神。\"义利并举\"是价值观锚点。培训让我对数字化、AI有了期待，职业规划课坚定了深耕专业的决心。华峰大家庭不是口号，是真实感受。",
+  ];
+
+  const typingContent = document.getElementById('typingContent');
+  const typingCursor = document.getElementById('typingCursor');
+  let msgIndex = 0;
+  let charIndex = 0;
+  const TYPE_SPEED = 30;
+  const PAUSE_END = 3000;
+  const PAUSE_START = 300;
+
+  function typeLoop() {
+    const currentMsg = messages[msgIndex];
+    charIndex++;
+    typingContent.textContent = currentMsg.substring(0, charIndex);
+
+    if (charIndex >= currentMsg.length) {
+      // Finished — pause, clear instantly, next
+      setTimeout(() => {
+        typingContent.textContent = '';
+        charIndex = 0;
+        msgIndex = (msgIndex + 1) % messages.length;
+        setTimeout(typeLoop, PAUSE_START);
+      }, PAUSE_END);
+      return;
+    }
+    setTimeout(typeLoop, TYPE_SPEED + Math.random() * 40);
+  }
+
+  // Start typing after a short delay
+  setTimeout(typeLoop, 800);
+})();
+</script>
+</body>
+</html>

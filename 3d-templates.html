@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 创意模板展示 - 穿越·维度</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card-bg: rgba(20, 20, 40, 0.85);
+    --text: #e0e0f0;
+    --accent-1: #6c5ce7;
+    --accent-2: #e8a040;
+    --accent-3: #00d2ff;
+    --accent-4: #f8f0e0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+    transition: background 0.8s;
+  }
+
+  /* ===== Ambient BG Particles (Pure CSS) ===== */
+  .bg-particles {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .bg-particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+  }
+
+  /* ===== Main Container ===== */
+  #app { position: relative; z-index: 1; }
+
+  header {
+    text-align: center; padding: 60px 20px 30px;
+  }
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #6c5ce7, #00d2ff, #e8a040);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.04em;
+  }
+  header .subtitle {
+    margin-top: 12px;
+    font-size: 1.15rem;
+    color: rgba(200,200,220,0.7);
+    letter-spacing: 0.2em;
+  }
+
+  /* ===== Card Grid ===== */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    max-width: 1200px;
+    margin: 20px auto 60px;
+    padding: 0 24px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 36px 28px 32px;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                box-shadow 0.4s ease,
+                border-color 0.4s ease;
+    transform-style: preserve-3d;
+    perspective: 800px;
+  }
+  .card:hover {
+    transform: translateY(-10px) rotateX(2deg) rotateY(-2deg);
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5),
+                0 0 80px rgba(108,92,231,0.15);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at var(--mx,50%) var(--my,50%),
+      var(--glow, transparent) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .card:hover::before { opacity: 0.4; }
+
+  .card-icon {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    position: relative;
+    z-index: 2;
+  }
+  .card:nth-child(1) .card-icon { background: linear-gradient(135deg, #1a1a4e, #2d2b8e); }
+  .card:nth-child(2) .card-icon { background: linear-gradient(135deg, #3e2010, #7a4a20); }
+  .card:nth-child(3) .card-icon { background: linear-gradient(135deg, #0a2a3a, #0d4a5e); }
+  .card:nth-child(4) .card-icon { background: linear-gradient(135deg, #1a1a1a, #3a3528); }
+
+  .card h3 {
+    font-size: 1.55rem; font-weight: 700; margin-bottom: 8px;
+    position: relative; z-index: 2;
+  }
+  .card .tagline {
+    font-size: 0.9rem; color: rgba(200,200,220,0.6);
+    margin-bottom: 16px; position: relative; z-index: 2;
+  }
+  .card .features {
+    list-style: none; font-size: 0.85rem;
+    color: rgba(200,200,220,0.75); line-height: 1.8;
+    position: relative; z-index: 2;
+  }
+  .card .features li::before {
+    content: '✦ ';
+    font-size: 0.6rem; margin-right: 4px;
+  }
+  .card .badge {
+    display: inline-block;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 0.75rem; margin-top: 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative; z-index: 2;
+  }
+  .card .preview-hint {
+    margin-top: 20px; font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; gap: 6px;
+    position: relative; z-index: 2;
+    transition: color 0.3s;
+  }
+  .card:hover .preview-hint { color: rgba(255,255,255,0.7); }
+  .preview-hint .arrow {
+    display: inline-block; transition: transform 0.3s;
+  }
+  .card:hover .preview-hint .arrow { transform: translateX(4px); }
+
+  /* ===== 3D Viewer Mode ===== */
+  #viewer {
+    position: fixed; inset: 0; z-index: 100;
+    display: none;
+    background: #000;
+  }
+  #viewer.active { display: block; }
+  #three-canvas { display: block; width: 100%; height: 100%; }
+
+  #back-btn {
+    position: fixed; top: 24px; left: 24px; z-index: 200;
+    padding: 12px 24px;
+    border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.6); color: #fff;
+    font-size: 0.95rem; cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+    display: none;
+  }
+  #back-btn.visible { display: block; }
+  #back-btn:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  #viewer-label {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 200;
+    font-size: 1.4rem; font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    pointer-events: none;
+    transition: opacity 0.5s;
+  }
+
+  #loading-indicator {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    z-index: 300;
+    color: rgba(255,255,255,0.6);
+    font-size: 1rem; letter-spacing: 0.15em;
+    display: none;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 640px) {
+    .cards-grid { grid-template-columns: 1fr; padding: 0 16px; gap: 18px; }
+    header { padding: 40px 16px 20px; }
+    .card { padding: 28px 22px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CSS ambient particles -->
+<div class="bg-particles" id="bgParticles"></div>
+
+<!-- ===== Card Selection UI ===== -->
+<div id="app">
+  <header>
+    <h1>穿越 · 维度</h1>
+    <p class="subtitle">3D CREATIVE TEMPLATES</p>
+  </header>
+
+  <div class="cards-grid">
+
+    <!-- Template 1: 时空隧道 -->
+    <div class="card" data-template="chrono-tunnel"
+         style="--glow: rgba(108,92,231,0.25);">
+      <div class="card-icon">🌀</div>
+      <h3>时空隧道</h3>
+      <p class="tagline">Chrono Tunnel · 穿越虫洞</p>
+      <ul class="features">
+        <li>粒子环形隧道，无限向前飞行</li>
+        <li>光谱渐变色彩流动</li>
+        <li>鼠标控制视角偏移</li>
+        <li>深邃星空背景</li>
+      </ul>
+      <span class="badge">粒子系统</span>
+      <span class="badge">动态相机</span>
+      <div class="preview-hint">
+        点击预览 <span class="arrow">→</span>
+      </div>
+    </div>
+
+    <!-- Template 2: 星际之门 -->
+    <div class="card" data-template="star-gate"
+         style="--glow: rgba(232,160,64,0.25);">
+      <div class="card-icon">🌟</div>
+      <h3>星际之门</h3>
+      <p class="tagline">Star Gate · 传送奇点</p>
+      <ul class="features">
+        <li>双环逆向旋转的星门结构</li>
+        <li>能量粒子环绕流转</li>
+        <li>中心高亮光晕核心</li>
+        <li>穿越光束粒子流</li>
+      </ul>
+      <span class="badge">环形体</span>
+      <span class="badge">光晕特效</span>
+      <div class="preview-hint">
+        点击预览 <span class="arrow">→</span>
+      </div>
+    </div>
+
+    <!-- Template 3: 超立方体 -->
+    <div class="card" data-template="tesseract"
+         style="--glow: rgba(0,210,255,0.25);">
+      <div class="card-icon">🧊</div>
+      <h3>超立方体</h3>
+      <p class="tagline">Tesseract · 四维投影</p>
+      <ul class="features">
+        <li>内外嵌套线框立方体</li>
+        <li>内层反转模拟四维投影</li>
+        <li>顶点连线动态变换</li>
+        <li>赛博朋克霓虹配色</li>
+      </ul>
+      <span class="badge">线框几何</span>
+      <span class="badge">维度投影</span>
+      <div class="preview-hint">
+        点击预览 <span class="arrow">→</span>
+      </div>
+    </div>
+
+    <!-- Template 4: 灵魂飞升 -->
+    <div class="card" data-template="ascension"
+         style="--glow: rgba(248,240,224,0.25);">
+      <div class="card-icon">✨</div>
+      <h3>灵魂飞升</h3>
+      <p class="tagline">Ascension · 螺旋升华</p>
+      <ul class="features">
+        <li>数千粒子螺旋上升</li>
+        <li>金色光点渐隐渐现</li>
+        <li>相机缓绕柱体旋转</li>
+        <li>空灵梦幻的氛围感</li>
+      </ul>
+      <span class="badge">粒子螺旋</span>
+      <span class="badge">氛围渲染</span>
+      <div class="preview-hint">
+        点击预览 <span class="arrow">→</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 3D Viewer ===== -->
+<div id="viewer">
+  <canvas id="three-canvas"></canvas>
+  <div id="viewer-label"></div>
+</div>
+<button id="back-btn">← 返回模板选择</button>
+<div id="loading-indicator">LOADING...</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ===== DOM Elements =====
+const app = document.getElementById('app');
+const viewer = document.getElementById('viewer');
+const canvas = document.getElementById('three-canvas');
+const backBtn = document.getElementById('back-btn');
+const viewerLabel = document.getElementById('viewer-label');
+const loadingEl = document.getElementById('loading-indicator');
+const cards = document.querySelectorAll('.card');
+
+// ===== Renderer Setup =====
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+let currentScene = null;
+let currentCamera = null;
+let currentAnimate = null;
+let animFrameId = null;
+let disposed = false;
+
+// ===== Cleanup =====
+function disposeScene(scene) {
+  scene.traverse(obj => {
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) {
+        obj.material.forEach(m => disposeMaterial(m));
+      } else {
+        disposeMaterial(obj.material);
+      }
+    }
+  });
+}
+
+function disposeMaterial(mat) {
+  for (const key of Object.keys(mat)) {
+    const v = mat[key];
+    if (v && v.isTexture) v.dispose();
+  }
+  mat.dispose();
+}
+
+function cleanup() {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  if (currentScene) disposeScene(currentScene);
+  currentScene = null;
+  currentCamera = null;
+  currentAnimate = null;
+}
+
+// ===== Resize Handler =====
+function onResize() {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (currentCamera) {
+    currentCamera.aspect = window.innerWidth / window.innerHeight;
+    currentCamera.updateProjectionMatrix();
+  }
+}
+window.addEventListener('resize', onResize);
+
+// ===== Mouse Tracking (for templates that use it) =====
+const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+window.addEventListener('mousemove', e => {
+  mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.ty = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+// ===== TEMPLATE 1: Chrono Tunnel =====
+function buildChronoTunnel() {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+
+  // Starfield background
+  const starsGeo = new THREE.BufferGeometry();
+  const starsCount = 1200;
+  const starsPos = new Float32Array(starsCount * 3);
+  for (let i = 0; i < starsCount * 3; i += 3) {
+    const r = 60 + Math.random() * 80;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+    starsPos[i] = r * Math.sin(phi) * Math.cos(theta);
+    starsPos[i+1] = r * Math.sin(phi) * Math.sin(theta);
+    starsPos[i+2] = r * Math.cos(phi);
+  }
+  starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+  const starsMat = new THREE.PointsMaterial({ color: 0x8899cc, size: 0.15, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const stars = new THREE.Points(starsGeo, starsMat);
+  scene.add(stars);
+
+  // Tunnel rings
+  const ringCount = 80;
+  const particlesPerRing = 60;
+  const totalParticles = ringCount * particlesPerRing;
+  const tunnelGeo = new THREE.BufferGeometry();
+  const tunnelPositions = new Float32Array(totalParticles * 3);
+  const tunnelColors = new Float32Array(totalParticles * 3);
+
+  const colorA = new THREE.Color('#4a3fd4');
+  const colorB = new THREE.Color('#00d4ff');
+  const colorC = new THREE.Color('#b040e0');
+
+  for (let r = 0; r < ringCount; r++) {
+    const z = -5 + r * 1.8;
+    const radius = 3.5 + Math.sin(r * 0.12) * 1.5 + Math.cos(r * 0.07) * 1.0;
+    const twist = r * 0.15;
+    const t = r / ringCount;
+    let ringColor;
+    if (t < 0.33) ringColor = colorA.clone().lerp(colorB, t * 3);
+    else if (t < 0.66) ringColor = colorB.clone().lerp(colorC, (t - 0.33) * 3);
+    else ringColor = colorC.clone().lerp(colorA, (t - 0.66) * 3);
+
+    for (let p = 0; p < particlesPerRing; p++) {
+      const idx = (r * particlesPerRing + p) * 3;
+      const angle = (p / particlesPerRing) * Math.PI * 2 + twist;
+      tunnelPositions[idx] = Math.cos(angle) * radius;
+      tunnelPositions[idx+1] = Math.sin(angle) * radius * 0.7;
+      tunnelPositions[idx+2] = z;
+      tunnelColors[idx] = ringColor.r;
+      tunnelColors[idx+1] = ringColor.g;
+      tunnelColors[idx+2] = ringColor.b;
+    }
+  }
+  tunnelGeo.setAttribute('position', new THREE.BufferAttribute(tunnelPositions, 3));
+  tunnelGeo.setAttribute('color', new THREE.BufferAttribute(tunnelColors, 3));
+  const tunnelMat = new THREE.PointsMaterial({
+    size: 0.12,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.9,
+  });
+  const tunnel = new THREE.Points(tunnelGeo, tunnelMat);
+  scene.add(tunnel);
+
+  // Central glow particles (faster, brighter)
+  const glowCount = 400;
+  const glowGeo = new THREE.BufferGeometry();
+  const glowPos = new Float32Array(glowCount * 3);
+  for (let i = 0; i < glowCount * 3; i += 3) {
+    const z = -10 + Math.random() * 160;
+    const r = 0.3 + Math.random() * 2.5;
+    const a = Math.random() * Math.PI * 2;
+    glowPos[i] = Math.cos(a) * r;
+    glowPos[i+1] = Math.sin(a) * r * 0.6;
+    glowPos[i+2] = z;
+  }
+  glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
+  const glowMat = new THREE.PointsMaterial({
+    size: 0.08, color: 0xaaccff,
+    blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.7
+  });
+  const glowParticles = new THREE.Points(glowGeo, glowMat);
+  scene.add(glowParticles);
+
+  let camZ = -8;
+  const speed = 0.12;
+
+  function animate(time) {
+    camZ += speed;
+    // Loop back
+    const tunnelLength = ringCount * 1.8;
+    if (camZ > tunnelLength - 10) camZ -= tunnelLength;
+
+    // Smooth mouse follow
+    mouse.x += (mouse.tx - mouse.x) * 0.03;
+    mouse.y += (mouse.ty - mouse.y) * 0.03;
+
+    camera.position.set(mouse.x * 0.6, mouse.y * 0.4, camZ);
+    camera.lookAt(mouse.x * 1.2, mouse.y * 0.8, camZ + 20);
+
+    // Rotate starfield slowly
+    stars.rotation.z += 0.0003;
+    stars.rotation.y += 0.0002;
+
+    // Pulse glow
+    glowParticles.material.opacity = 0.5 + Math.sin(time * 0.002) * 0.2;
+
+    renderer.render(scene, camera);
+  }
+
+  return { scene, camera, animate, label: '时 空 隧 道' };
+}
+
+// ===== TEMPLATE 2: Star Gate =====
+function buildStarGate() {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 150);
+  camera.position.set(0, 0.3, 14);
+
+  // Space background
+  const bgGeo = new THREE.BufferGeometry();
+  const bgCount = 2000;
+  const bgPos = new Float32Array(bgCount * 3);
+  for (let i = 0; i < bgCount * 3; i += 3) {
+    bgPos[i] = (Math.random() - 0.5) * 120;
+    bgPos[i+1] = (Math.random() - 0.5) * 80;
+    bgPos[i+2] = -20 - Math.random() * 60;
+  }
+  bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+  scene.add(new THREE.Points(bgGeo, new THREE.PointsMaterial({
+    color: 0x8899cc, size: 0.08, blending: THREE.AdditiveBlending, depthWrite: false
+  })));
+
+  // Main ring group
+  const ringGroup = new THREE.Group();
+  scene.add(ringGroup);
+
+  // Outer ring
+  const outerRingGeo = new THREE.TorusGeometry(5, 0.15, 16, 180);
+  const outerRingMat = new THREE.MeshStandardMaterial({
+    color: 0xe8a040, emissive: 0xe8a040, emissiveIntensity: 1.8,
+    roughness: 0.3, metalness: 0.9
+  });
+  const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+  ringGroup.add(outerRing);
+
+  // Inner ring
+  const innerRingGeo = new THREE.TorusGeometry(3.8, 0.1, 16, 140);
+  const innerRingMat = new THREE.MeshStandardMaterial({
+    color: 0xffcc66, emissive: 0xff9930, emissiveIntensity: 2.0,
+    roughness: 0.2, metalness: 0.8
+  });
+  const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+  ringGroup.add(innerRing);
+
+  // Third thin ring
+  const thinRingGeo = new THREE.TorusGeometry(4.4, 0.04, 8, 200);
+  const thinRingMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+  const thinRing = new THREE.Mesh(thinRingGeo, thinRingMat);
+  ringGroup.add(thinRing);
+
+  // Orbiting particles around rings
+  const orbitCount = 600;
+  const orbitGeo = new THREE.BufferGeometry();
+  const orbitPos = new Float32Array(orbitCount * 3);
+  const orbitData = []; // per-particle: { radius, speed, phase, axis }
+  for (let i = 0; i < orbitCount; i++) {
+    orbitData.push({
+      radius: 3.6 + Math.random() * 1.7,
+      speed: 0.3 + Math.random() * 1.5,
+      phase: Math.random() * Math.PI * 2,
+      ySpread: (Math.random() - 0.5) * 0.8,
+    });
+    orbitPos[i*3] = 0; orbitPos[i*3+1] = 0; orbitPos[i*3+2] = 0;
+  }
+  orbitGeo.setAttribute('position', new THREE.BufferAttribute(orbitPos, 3));
+  const orbitMat = new THREE.PointsMaterial({
+    color: 0xffcc88, size: 0.06,
+    blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+  });
+  const orbitParticles = new THREE.Points(orbitGeo, orbitMat);
+  scene.add(orbitParticles);
+
+  // Central glow
+  const glowSpriteTex = createGlowTexture();
+  const glowSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowSpriteTex, blending: THREE.AdditiveBlending,
+    depthWrite: false, transparent: true, opacity: 0.7
+  }));
+  glowSprite.scale.set(5, 5, 1);
+  scene.add(glowSprite);
+
+  // Light
+  const pointLight = new THREE.PointLight(0xffaa44, 30, 20);
+  pointLight.position.set(0, 0, 0);
+  scene.add(pointLight);
+  const ambientLight = new THREE.AmbientLight(0x221100, 2);
+  scene.add(ambientLight);
+
+  function animate(time) {
+    const t = time * 0.001;
+
+    outerRing.rotation.z += 0.008;
+    outerRing.rotation.x += 0.003;
+    innerRing.rotation.z -= 0.012;
+    innerRing.rotation.y += 0.005;
+    thinRing.rotation.x += 0.015;
+    thinRing.rotation.y -= 0.006;
+    ringGroup.rotation.y += 0.002;
+
+    // Update orbit particles
+    const pos = orbitGeo.attributes.position.array;
+    for (let i = 0; i < orbitCount; i++) {
+      const d = orbitData[i];
+      const a = d.phase + t * d.speed;
+      pos[i*3] = Math.cos(a) * d.radius;
+      pos[i*3+1] = Math.sin(a) * 0.35 + d.ySpread;
+      pos[i*3+2] = Math.sin(a) * d.radius * 0.6;
+    }
+    orbitGeo.attributes.position.needsUpdate = true;
+
+    // Pulse glow
+    const pulse = 1 + Math.sin(t * 2.5) * 0.2 + Math.sin(t * 4.7) * 0.1;
+    glowSprite.scale.set(5 * pulse, 5 * pulse, 1);
+    glowSprite.material.opacity = 0.55 + Math.sin(t * 3.1) * 0.2;
+    pointLight.intensity = 25 + Math.sin(t * 2.5) * 8;
+
+    // Subtle camera sway
+    camera.position.x = Math.sin(t * 0.4) * 0.6;
+    camera.position.y = 0.3 + Math.cos(t * 0.55) * 0.4;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+
+  return { scene, camera, animate, label: '星 际 之 门' };
+}
+
+// ===== TEMPLATE 3: Tesseract =====
+function buildTesseract() {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(4, 3.5, 9);
+  camera.lookAt(0, 0, 0);
+
+  // Grid floor
+  const gridHelper = new THREE.PolarGridHelper(10, 40, 30, 64, 0x004466, 0x002233);
+  scene.add(gridHelper);
+
+  // Background particles
+  const bgGeo = new THREE.BufferGeometry();
+  const bgCount = 800;
+  const bgPos = new Float32Array(bgCount * 3);
+  for (let i = 0; i < bgCount * 3; i += 3) {
+    bgPos[i] = (Math.random() - 0.5) * 30;
+    bgPos[i+1] = (Math.random() - 0.5) * 20;
+    bgPos[i+2] = (Math.random() - 0.5) * 20;
+  }
+  bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+  scene.add(new THREE.Points(bgGeo, new THREE.PointsMaterial({
+    color: 0x335577, size: 0.04, blending: THREE.AdditiveBlending, depthWrite: false
+  })));
+
+  // Outer cube vertices
+  const size = 2.5;
+  const half = size;
+  const outerVertices = [
+    [-half, -half, -half], [ half, -half, -half], [ half,  half, -half], [-half,  half, -half],
+    [-half, -half,  half], [ half, -half,  half], [ half,  half,  half], [-half,  half,  half],
+  ];
+  const innerVertices = outerVertices.map(v => [v[0]*0.55, v[1]*0.55, v[2]*0.55]);
+
+  // Create wireframe cubes with edges
+  function createCubeEdges(vertices, color, lineWidth) {
+    const edges = [
+      [0,1],[1,2],[2,3],[3,0], // back face
+      [4,5],[5,6],[6,7],[7,4], // front face
+      [0,4],[1,5],[2,6],[3,7], // connections
+    ];
+    const group = new THREE.Group();
+    edges.forEach(([a, b]) => {
+      const pts = [new THREE.Vector3(...vertices[a]), new THREE.Vector3(...vertices[b])];
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({ color, linewidth: lineWidth || 1, transparent: true, opacity: 0.9 });
+      group.add(new THREE.Line(geo, mat));
+    });
+    return group;
+  }
+
+  const outerCube = createCubeEdges(outerVertices, 0x00d4ff);
+  const innerCube = createCubeEdges(innerVertices, 0xff4488);
+  scene.add(outerCube);
+  scene.add(innerCube);
+
+  // Connecting lines between outer and inner vertices
+  const connGroup = new THREE.Group();
+  for (let i = 0; i < 8; i++) {
+    const pts = [new THREE.Vector3(...outerVertices[i]), new THREE.Vector3(...innerVertices[i])];
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineDashedMaterial({
+      color: 0x8866cc, dashSize: 0.15, gapSize: 0.1,
+      transparent: true, opacity: 0.5
+    });
+    connGroup.add(new THREE.Line(geo, mat));
+  }
+  scene.add(connGroup);
+
+  // Vertex glow points
+  function createVertexPoints(vertices, color) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(vertices.flat());
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return new THREE.Points(geo, new THREE.PointsMaterial({
+      color, size: 0.15, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+  }
+  const outerPoints = createVertexPoints(outerVertices, 0x00d4ff);
+  const innerPoints = createVertexPoints(innerVertices, 0xff4488);
+  scene.add(outerPoints);
+  scene.add(innerPoints);
+
+  function animate(time) {
+    const t = time * 0.001;
+
+    outerCube.rotation.x += 0.004;
+    outerCube.rotation.y += 0.007;
+    outerPoints.rotation.copy(outerCube.rotation);
+    connGroup.rotation.copy(outerCube.rotation);
+
+    innerCube.rotation.x -= 0.009;
+    innerCube.rotation.y -= 0.013;
+    innerCube.rotation.z += 0.005;
+    innerPoints.rotation.copy(innerCube.rotation);
+
+    // Camera orbit
+    const camR = 9 + Math.sin(t * 0.3) * 1.5;
+    const camAngle = t * 0.25;
+    camera.position.x = Math.cos(camAngle) * camR;
+    camera.position.z = Math.sin(camAngle) * camR;
+    camera.position.y = 3 + Math.sin(t * 0.4) * 2;
+    camera.lookAt(0, 0, 0);
+
+    gridHelper.rotation.z += 0.002;
+
+    renderer.render(scene, camera);
+  }
+
+  return { scene, camera, animate, label: '超 立 方 体' };
+}
+
+// ===== TEMPLATE 4: Ascension =====
+function buildAscension() {
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x000008, 0.00015);
+  const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 2, 11);
+
+  // Rising spiral particles
+  const particleCount = 3000;
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
+
+  const baseColor = new THREE.Color('#ffe8c0');
+  const midColor = new THREE.Color('#ffcc80');
+  const topColor = new THREE.Color('#ffffff');
+
+  // Store per-particle data for animation
+  const particleData = [];
+
+  for (let i = 0; i < particleCount; i++) {
+    const t = i / particleCount;
+    const height = t * 25 - 2; // spread from -2 to 23
+    const spiralAngle = t * Math.PI * 8 + Math.random() * 0.5; // 4 full spirals
+    const radius = 0.3 + t * 3.5 + Math.random() * 0.4;
+    const x = Math.cos(spiralAngle) * radius;
+    const z = Math.sin(spiralAngle) * radius;
+    const y = height + (Math.random() - 0.5) * 0.6;
+
+    positions[i*3] = x;
+    positions[i*3+1] = y;
+    positions[i*3+2] = z;
+
+    // Color gradient
+    const c = baseColor.clone().lerp(midColor, t).lerp(topColor, t * t);
+    colors[i*3] = c.r;
+    colors[i*3+1] = c.g;
+    colors[i*3+2] = c.b;
+
+    sizes[i] = 0.03 + Math.random() * 0.08;
+
+    particleData.push({
+      baseX: x, baseY: y, baseZ: z,
+      radius, spiralAngle, height,
+      speed: 0.15 + Math.random() * 0.6,
+      floatAmp: 0.1 + Math.random() * 0.5,
+      floatFreq: 0.5 + Math.random() * 1.5,
+    });
+  }
+
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+  // Custom shader sprite texture
+  const spriteCanvas = document.createElement('canvas');
+  spriteCanvas.width = 32; spriteCanvas.height = 32;
+  const ctx = spriteCanvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.15, 'rgba(255,240,210,0.9)');
+  gradient.addColorStop(0.4, 'rgba(255,200,150,0.4)');
+  gradient.addColorStop(0.7, 'rgba(255,150,100,0.05)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 32, 32);
+  const spriteTex = new THREE.CanvasTexture(spriteCanvas);
+
+  const mat = new THREE.PointsMaterial({
+    size: 0.25,
+    map: spriteTex,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.85,
+  });
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  // Floating ambient orbs
+  const orbGroup = new THREE.Group();
+  for (let i = 0; i < 12; i++) {
+    const orbGeo = new THREE.SphereGeometry(0.04 + Math.random() * 0.06, 8, 8);
+    const orbMat = new THREE.MeshBasicMaterial({ color: 0xffddaa, transparent: true, opacity: 0.6 });
+    const orb = new THREE.Mesh(orbGeo, orbMat);
+    orb.position.set(
+      (Math.random() - 0.5) * 10,
+      Math.random() * 20,
+      (Math.random() - 0.5) * 8
+    );
+    orb.userData = {
+      baseY: orb.position.y,
+      speed: 0.3 + Math.random() * 0.7,
+      amp: 0.5 + Math.random() * 2,
+    };
+    orbGroup.add(orb);
+  }
+  scene.add(orbGroup);
+
+  function animate(time) {
+    const t = time * 0.001;
+
+    // Update particle positions (rising + spiral)
+    const posArr = geo.attributes.position.array;
+    for (let i = 0; i < particleCount; i++) {
+      const d = particleData[i];
+      let y = d.baseY + t * d.speed;
+      // Loop when reaching top
+      y = ((y + 2) % 25) - 2;
+
+      const newAngle = d.spiralAngle + t * 0.3 * d.speed;
+      const r = d.radius + Math.sin(t * d.floatFreq) * d.floatAmp;
+
+      posArr[i*3] = Math.cos(newAngle) * r;
+      posArr[i*3+1] = y;
+      posArr[i*3+2] = Math.sin(newAngle) * r;
+    }
+    geo.attributes.position.needsUpdate = true;
+
+    // Animate orbs
+    orbGroup.children.forEach(orb => {
+      orb.position.y = orb.userData.baseY + Math.sin(t * orb.userData.speed) * orb.userData.amp;
+      orb.position.x += Math.cos(t * 0.7 + orb.userData.baseY) * 0.003;
+      orb.material.opacity = 0.3 + Math.sin(t * 1.5 + orb.userData.baseY) * 0.3;
+    });
+
+    // Gentle camera orbit
+    const camAngle = t * 0.18;
+    const camR = 10 + Math.sin(t * 0.25) * 2;
+    camera.position.x = Math.cos(camAngle) * camR;
+    camera.position.z = Math.sin(camAngle) * camR;
+    camera.position.y = 2 + Math.sin(t * 0.35) * 3;
+    camera.lookAt(0, 5, 0);
+
+    // Slight rotation of whole particle system
+    particles.rotation.y += 0.001;
+    orbGroup.rotation.y -= 0.0008;
+
+    renderer.render(scene, camera);
+  }
+
+  return { scene, camera, animate, label: '灵 魂 飞 升' };
+}
+
+// ===== Helper: Glow Texture =====
+function createGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, 'rgba(255,255,220,1)');
+  g.addColorStop(0.1, 'rgba(255,200,100,0.9)');
+  g.addColorStop(0.3, 'rgba(255,140,60,0.5)');
+  g.addColorStop(0.6, 'rgba(255,80,30,0.1)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+// ===== Template Registry =====
+const templates = {
+  'chrono-tunnel': buildChronoTunnel,
+  'star-gate': buildStarGate,
+  'tesseract': buildTesseract,
+  'ascension': buildAscension,
+};
+
+// ===== Switch to Template =====
+function switchToTemplate(name) {
+  cleanup();
+  loadingEl.style.display = 'block';
+  viewerLabel.style.opacity = '0';
+
+  // Small delay for UI update
+  setTimeout(() => {
+    const builder = templates[name];
+    if (!builder) return;
+
+    const result = builder();
+    currentScene = result.scene;
+    currentCamera = result.camera;
+    currentAnimate = result.animate;
+    viewerLabel.textContent = result.label;
+
+    loadingEl.style.display = 'none';
+    viewerLabel.style.opacity = '1';
+
+    // Start render loop
+    function loop(time) {
+      if (disposed) return;
+      animFrameId = requestAnimationFrame(loop);
+      if (currentAnimate) currentAnimate(time);
+      // Lerp mouse
+    }
+    animFrameId = requestAnimationFrame(loop);
+  }, 100);
+}
+
+function showViewer(templateName) {
+  app.style.display = 'none';
+  viewer.classList.add('active');
+  backBtn.classList.add('visible');
+  switchToTemplate(templateName);
+}
+
+function hideViewer() {
+  cleanup();
+  app.style.display = '';
+  viewer.classList.remove('active');
+  backBtn.classList.remove('visible');
+  viewerLabel.style.opacity = '0';
+}
+
+// ===== Event Listeners =====
+cards.forEach(card => {
+  card.addEventListener('click', () => {
+    const template = card.dataset.template;
+    if (template) showViewer(template);
+  });
+
+  // Track mouse for glow effect
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    card.style.setProperty('--mx', `${x}%`);
+    card.style.setProperty('--my', `${y}%`);
+  });
+});
+
+backBtn.addEventListener('click', hideViewer);
+
+// ESC to go back
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && viewer.classList.contains('active')) {
+    hideViewer();
+  }
+});
+
+// ===== Generate Ambient CSS Particles =====
+(function createBgParticles() {
+  const container = document.getElementById('bgParticles');
+  const colors = ['#6c5ce7', '#a088ff', '#00d2ff', '#4a90d9', '#8866cc'];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.classList.add('bg-particle');
+    p.style.left = Math.random() * 100 + '%';
+    p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (8 + Math.random() * 20) + 's';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    container.appendChild(p);
+  }
+})();
+
+console.log('%c✨ 3D 创意模板已就绪 %c| %c点击任意卡片预览效果 %c| %c按 ESC 返回',
+  'color:#ffd700;font-size:1.2em;', '', 'color:#aaa;', '', 'color:#aaa;');
+</script>
+</body>
+</html>
