@@ -291,6 +291,14 @@
     setInterval(nextPhoto, 3000);
   }
 
+  // 安全兜底：10 秒后强制启动轮播（防止某张图网络超时导致永远不播）
+  setTimeout(function() {
+    if (!started) {
+      console.warn('预加载超时，已加载 ' + loadedCount + '/' + total + ' 张，强制启动轮播');
+      startSlideshow();
+    }
+  }, 10000);
+
   // Particles
   const canvas = document.getElementById('particles');
   const ctx = canvas.getContext('2d');
